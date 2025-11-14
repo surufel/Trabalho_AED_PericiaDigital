@@ -83,7 +83,22 @@ Retorne tipos exatos especificados na interface
 
     @Override
     public List<String> reconstruirLinhaTempo(String arquivo, String sessionId) throws IOException {
-        // Implementar usando Queue<String>
+        List<String> resultado = new ArrayList<>();
+        Queue<String> fila = new ArrayDeque<>();
+        try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo))) {
+            String linha;
+            while ((linha = leitor.readLine()) != null){
+                if(linha.startsWith("TIMESTAMP")){continue;}
+                String[] linha_dividida = linha.split(",", -1);
+                if(linha_dividida.length < 4){continue;} // 0 = TIMESTAMP, 1 = USER_ID, 2 = SESSION_ID, 3 = ACTION_TYPE
+                String sessao = linha_dividida[2].trim();
+                String action = linha_dividida[3].trim();
+                if(sessao.equals(sessionId)){fila.add(action);}
+            }
+        }
+        while (!fila.isEmpty()) {resultado.add(fila.poll());}
+        return resultado;
+    }
     }
 
     @Override
