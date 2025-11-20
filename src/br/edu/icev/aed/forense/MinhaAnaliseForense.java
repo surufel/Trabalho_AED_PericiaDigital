@@ -93,8 +93,50 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
 
     @Override
     public Map<Long, Long> encontrarPicosTransferencia(String arquivo) throws IOException {
-        // Implementar usando Stack (Next Greater Element)
-        return null; // TODO: Implementar
+        Map<Long, Long> picos = new HashMap<>();
+        List<EventoTransferencia> eventos = new ArrayList<>();
+
+        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
+            br.readLine();
+            String linha;
+            while ((linha = br.readLine()) != null) {
+                String[] colunas = linha.split(",");
+                long timestamp = Long.parseLong(colunas[0]);
+                long bytes = Long.parseLong(colunas[6]);
+
+                if (bytes > 0) {
+                    eventos.add(new EventoTransferencia(timestamp, bytes));
+                }
+            }
+        }
+
+        Stack<EventoTransferencia> pilha = new Stack<>();
+
+        for (int i = eventos.size() - 1; i >= 0; i--) {
+            EventoTransferencia eventoAtual = eventos.get(i);
+
+            while (!pilha.isEmpty() && pilha.peek().bytes <= eventoAtual.bytes) {
+                pilha.pop();
+            }
+
+            if (!pilha.isEmpty()) {
+                picos.put(eventoAtual.timestamp, pilha.peek().timestamp);
+            }
+
+            pilha.push(eventoAtual);
+        }
+
+        return picos;
+    }
+
+    private static class EventoTransferencia {
+        long timestamp;
+        long bytes;
+
+        EventoTransferencia(long timestamp, long bytes) {
+            this.timestamp = timestamp;
+            this.bytes = bytes;
+        }
     }
 
     @Override
