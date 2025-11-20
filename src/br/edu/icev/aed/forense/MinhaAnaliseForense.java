@@ -65,8 +65,30 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
 
     @Override
     public List<Alerta> priorizarAlertas(String arquivo, int n) throws IOException {
-        // Implementar usando PriorityQueue<Alerta>
-        return null; // TODO: Implementar
+        if (n <= 0) {return new ArrayList<>();}
+        PriorityQueue<Alerta> fila = new PriorityQueue<>((a, b) -> Integer.compare(b.getSeverityLevel(), a.getSeverityLevel()));
+        try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo)))
+        {
+            String linha;
+            while ((linha = leitor.readLine()) != null)
+            {
+                if (linha.startsWith("TIMESTAMP")) continue;
+                String[] col = linha.split(",", -1);
+                if (col.length < 7) continue;
+                long timestamp = Long.parseLong(col[0].trim());
+                String userId = col[1].trim();
+                String sessionId = col[2].trim();
+                String actionType = col[3].trim();
+                String target = col[4].trim();
+                int severity = Integer.parseInt(col[5].trim());
+                long bytes = Long.parseLong(col[6].trim());
+                Alerta alerta = new Alerta(timestamp, userId, sessionId, actionType, target, severity, bytes);
+                fila.add(alerta);
+            }
+        }
+        List<Alerta> resultado = new ArrayList<>();
+        for (int i = 0; i < n && !fila.isEmpty(); i++) {resultado.add(fila.poll());}
+        return resultado;
     }
 
     @Override
