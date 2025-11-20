@@ -16,7 +16,7 @@ Trate exceções de IO adequadamente
 Retorne tipos exatos especificados na interface
 */
 @Override
-public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException {
+public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException { // Desafio 1
     Map<String, Stack<String>> pilhasUsuarios = new HashMap<>();
     Set<String> sessoesInvalidas = new HashSet<>();
     try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo))) {
@@ -44,27 +44,26 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
     return sessoesInvalidas;
 }
     @Override
-    public List<String> reconstruirLinhaTempo(String arquivo, String sessionId) throws IOException {
-        Queue<String> fila = new ArrayDeque<>();
+    public List<String> reconstruirLinhaTempo(String arquivo, String sessionId) throws IOException { // Desafio 2
         List<String> resultado = new ArrayList<>();
         try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo))) {
             String linha;
+            linha = leitor.readLine();
+            if (linha == null) {return resultado;}
             while ((linha = leitor.readLine()) != null)
             {
-                if (linha.startsWith("TIMESTAMP")) continue;
+                if (linha.trim().isEmpty()){continue;}
                 String[] col = linha.split(",", -1);
-                if (col.length < 4) continue;
-                String sessao = col[2].trim();
-                String action = col[3].trim();
-                if (sessao.equals(sessionId)) {fila.add(action);}
+                if (col.length < 4){continue;}
+                if (!col[2].trim().equals(sessionId)){continue;}
+                resultado.add(col[3].trim());
             }
         }
-        while (!fila.isEmpty()) {resultado.add(fila.poll());}
         return resultado;
 }
 
     @Override
-    public List<Alerta> priorizarAlertas(String arquivo, int n) throws IOException {
+    public List<Alerta> priorizarAlertas(String arquivo, int n) throws IOException { // Desafio 3
         if (n <= 0) {return new ArrayList<>();}
         PriorityQueue<Alerta> fila = new PriorityQueue<>((a, b) -> Integer.compare(b.getSeverityLevel(), a.getSeverityLevel()));
         try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo)))
@@ -81,7 +80,10 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
                 String actionType = col[3].trim();
                 String target = col[4].trim();
                 int severity = Integer.parseInt(col[5].trim());
-                long bytes = Long.parseLong(col[6].trim());
+                long bytes = 0;
+                if (!col[6].trim().isEmpty()) {
+                    bytes = Long.parseLong(col[6].trim());
+                }
                 Alerta alerta = new Alerta(timestamp, userId, sessionId, actionType, target, severity, bytes);
                 fila.add(alerta);
             }
@@ -92,7 +94,7 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
     }
 
     @Override
-    public Map<Long, Long> encontrarPicosTransferencia(String arquivo) throws IOException {
+    public Map<Long, Long> encontrarPicosTransferencia(String arquivo) throws IOException { // Desafio 4
         Map<Long, Long> picos = new HashMap<>();
         List<EventoTransferencia> eventos = new ArrayList<>();
 
@@ -140,7 +142,7 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
     }
 
     @Override
-    public Optional<List<String>> rastrearContaminacao(String arquivo, String origem, String destino) throws IOException {
+    public Optional<List<String>> rastrearContaminacao(String arquivo, String origem, String destino) throws IOException { // Desafio 5
         // Implementar usando BFS em grafo
         return Optional.empty(); // TODO: Implementar
     }
