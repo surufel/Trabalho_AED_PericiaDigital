@@ -94,52 +94,47 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
         return resultado;
     }
 
-    @Override
-    public Map<Long, Long> encontrarPicosTransferencia(String arquivo) throws IOException { // Desafio 4
-        Map<Long, Long> picos = new HashMap<>();
-        List<EventoTransferencia> eventos = new ArrayList<>();
+    public Map<Long, Long> encontrarPicosTransferencia(String arquivo) throws IOException {
+        class EventoTransferencia {
+            long timestamp;
+            long bytes;
 
-        try (BufferedReader br = new BufferedReader(new FileReader(arquivo))) {
-            br.readLine();
-            String linha;
-            while ((linha = br.readLine()) != null) {
-                String[] colunas = linha.split(",");
-                long timestamp = Long.parseLong(colunas[0]);
-                long bytes = Long.parseLong(colunas[6]);
-
-                if (bytes > 0) {
-                    eventos.add(new EventoTransferencia(timestamp, bytes));
-                }
+            public EventoTransferencia(long timestamp, long bytes) {
+                this.timestamp = timestamp;
+                this.bytes = bytes;
             }
         }
 
+        List<EventoTransferencia> eventosTransferencia = new ArrayList<>();
+        List<EventoTransferencia> eventos = new ArrayList<>();
+        try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo))) {
+            leitor.readLine(); // Pular o cabeçalho
+            String linha;
+            while ((linha = leitor.readLine()) != null) {
+                String[] colunas = linha.split(",", -1);
+                if (colunas.length < 7) {continue;}
+                if (!colunas[3].trim().equals("DATA_TRANSFER")) {continue;}
+                String bytesStr = colunas[6].trim();
+                if (bytesStr.isEmpty()) {continue;}
+                try {
+                    long timestamp = Long.parseLong(colunas[0].trim());
+                    long bytes = Long.parseLong(bytesStr);
+                    if (bytes > 0) {
+                        eventos.add(new EventoTransferencia(timestamp, bytes));
+                    }
+                } catch (NumberFormatException e) {continue;}
+            }
+        }
+        if (eventos.isEmpty()) {return new HashMap<>();}
+        Map<Long, Long> picosTransferencia = new HashMap<>();
         Stack<EventoTransferencia> pilha = new Stack<>();
-
         for (int i = eventos.size() - 1; i >= 0; i--) {
             EventoTransferencia eventoAtual = eventos.get(i);
-
-            while (!pilha.isEmpty() && pilha.peek().bytes <= eventoAtual.bytes) {
-                pilha.pop();
-            }
-
-            if (!pilha.isEmpty()) {
-                picos.put(eventoAtual.timestamp, pilha.peek().timestamp);
-            }
-
+            while (!pilha.isEmpty() && pilha.peek().bytes <= eventoAtual.bytes) {pilha.pop();}
+            if (!pilha.isEmpty()) {picosTransferencia.put(eventoAtual.timestamp, pilha.peek().timestamp);}
             pilha.push(eventoAtual);
         }
-
-        return picos;
-    }
-
-    private static class EventoTransferencia {
-        long timestamp;
-        long bytes;
-
-        EventoTransferencia(long timestamp, long bytes) {
-            this.timestamp = timestamp;
-            this.bytes = bytes;
-        }
+        return picosTransferencia;
     }
 
     @Override
