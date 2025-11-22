@@ -44,23 +44,24 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
     return sessoesInvalidas;
 }
     @Override
-    public List<String> reconstruirLinhaTempo(String arquivo, String sessionId) throws IOException { // Desafio 2
+    public List<String> reconstruirLinhaTempo(String arquivo, String sessionId) throws IOException {
+        Queue<String> FIFO = new ArrayDeque<>();
         List<String> resultado = new ArrayList<>();
         try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo))) {
+            leitor.readLine();
             String linha;
-            linha = leitor.readLine();
-            if (linha == null) {return resultado;}
-            while ((linha = leitor.readLine()) != null)
-            {
-                if (linha.trim().isEmpty()){continue;}
-                String[] col = linha.split(",", -1);
-                if (col.length < 4){continue;}
-                if (!col[2].trim().equals(sessionId)){continue;}
-                resultado.add(col[3].trim());
+            while ((linha = leitor.readLine()) != null) {
+                String[] colunas = linha.split(",", -1);
+                if (colunas.length < 4) continue;
+                String idDoLog = colunas[2].trim();
+                if (idDoLog.equals(sessionId)) {
+                    FIFO.add(colunas[3].trim());
+                }
             }
         }
+        resultado.addAll(FIFO);
         return resultado;
-}
+    }
 
     @Override
     public List<Alerta> priorizarAlertas(String arquivo, int n) throws IOException { // Desafio 3
