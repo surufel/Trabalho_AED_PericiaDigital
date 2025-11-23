@@ -157,9 +157,9 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
 
         }
         //Construção do grafo
-        Map<String, Set<String>> grafo = new HashSet<>();
+        Map<String, Set<String>> grafo = new HashMap<>();
         for (List<String> caminhoSessao : recursosPorSessao.values()) {
-            for (int i = 0, i < caminhoSessao.size() - 1, i++) {
+            for (int i = 0; i < caminhoSessao.size() - 1; i++) {
                 String u = caminhoSessao.get(i);
                 String v = caminhoSessao.get(i + 1);
 
@@ -208,7 +208,7 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
 
         //Reconstrução do caminho
         if (encontrouAlvo) {
-            List<String> caminhoFinal = new ArrayList<>();
+            List<String> caminhoFinal = new LinkedList<>();
             String passo = destino;
 
             while (passo != null) {
