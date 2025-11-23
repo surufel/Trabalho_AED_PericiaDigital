@@ -217,7 +217,7 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
             }
             return Optional.of(caminhoFinal);
         }
-        return Optional.empty(); // TODO: Implementar
+        return Optional.empty();
     }
 
 }
