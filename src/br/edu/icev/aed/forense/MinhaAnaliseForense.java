@@ -169,6 +169,54 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
                 }
             }
         }
+
+        //Busca em profundidade (BFS)
+        if (!grafo.containsKey(origem)) return Optional.empty();
+        if (origem.equals(destino)) {
+            List<String> caminhoUnico = new ArrayList<>();
+            caminhoUnico.add(origem);
+            return Optional.of(caminhoUnico);
+        }
+
+        Queue<String> fila = new ArrayDeque<>();
+        Set<String> visitados = new HashSet<>();
+        Map<String, String> predecessores = new HashMap<>();
+
+        fila.add(origem);
+        visitados.add(origem);
+        boolean encontrouAlvo = false;
+
+        while (!fila.isEmpty()) {
+            String atual = fila.poll();
+
+            if (atual.equals(destino)) {
+                encontrouAlvo = true;
+                break;
+            }
+
+
+            if (grafo.containsKey(atual)) {
+                for (String vizinho :grafo.get(atual)) {
+                    if (!visitados.contains(vizinho)) {
+                        visitados.add(vizinho);
+                        predecessores.put(vizinho, atual);
+                        fila.add(vizinho);
+                    }
+                }
+            }
+        }
+
+        //Reconstrução do caminho
+        if (encontrouAlvo) {
+            List<String> caminhoFinal = new ArrayList<>();
+            String passo = destino;
+
+            while (passo != null) {
+                caminhoFinal.add(0, passo);
+                passo = predecessores.get(passo);
+            }
+            return Optional.of(caminhoFinal);
+        }
         return Optional.empty(); // TODO: Implementar
     }
 
