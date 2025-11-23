@@ -139,7 +139,85 @@ public Set<String> encontrarSessoesInvalidas(String arquivo) throws IOException 
 
     @Override
     public Optional<List<String>> rastrearContaminacao(String arquivo, String origem, String destino) throws IOException { // Desafio 5
-        // Implementar usando BFS em grafo
-        return Optional.empty(); // TODO: Implementar
+        //Agrupando os recursos por sessão
+        Map<String, List<String>> recursosPorSessao = new HashMap<>();
+        try (BufferedReader leitor = new BufferedReader(new FileReader(arquivo))) {
+            leitor.readLine();
+            String linha;
+            while ((linha = leitor.readLine()) != null) {
+                String[] colunas = linha.split(",", -1);
+                if (colunas.length < 5) continue;
+
+                String sessionId = colunas[2].trim();
+                String resource = colunas[4].trim();
+
+                recursosPorSessao.putIfAbsent(sessionId, new ArrayList<>());
+                recursosPorSessao.get(sessionId).add(resource);
+            }
+
+        }
+        //Construção do grafo
+        Map<String, Set<String>> grafo = new HashMap<>();
+        for (List<String> caminhoSessao : recursosPorSessao.values()) {
+            for (int i = 0; i < caminhoSessao.size() - 1; i++) {
+                String u = caminhoSessao.get(i);
+                String v = caminhoSessao.get(i + 1);
+
+                if (!u.equals(v)) {
+                    grafo.putIfAbsent(u, new HashSet<>());
+                    grafo.get(u).add(v);
+                }
+            }
+        }
+
+        //Busca em profundidade (BFS)
+        if (!grafo.containsKey(origem)) return Optional.empty();
+        if (origem.equals(destino)) {
+            List<String> caminhoUnico = new ArrayList<>();
+            caminhoUnico.add(origem);
+            return Optional.of(caminhoUnico);
+        }
+
+        Queue<String> fila = new ArrayDeque<>();
+        Set<String> visitados = new HashSet<>();
+        Map<String, String> predecessores = new HashMap<>();
+
+        fila.add(origem);
+        visitados.add(origem);
+        boolean encontrouAlvo = false;
+
+        while (!fila.isEmpty()) {
+            String atual = fila.poll();
+
+            if (atual.equals(destino)) {
+                encontrouAlvo = true;
+                break;
+            }
+
+
+            if (grafo.containsKey(atual)) {
+                for (String vizinho :grafo.get(atual)) {
+                    if (!visitados.contains(vizinho)) {
+                        visitados.add(vizinho);
+                        predecessores.put(vizinho, atual);
+                        fila.add(vizinho);
+                    }
+                }
+            }
+        }
+
+        //Reconstrução do caminho
+        if (encontrouAlvo) {
+            List<String> caminhoFinal = new LinkedList<>();
+            String passo = destino;
+
+            while (passo != null) {
+                caminhoFinal.add(0, passo);
+                passo = predecessores.get(passo);
+            }
+            return Optional.of(caminhoFinal);
+        }
+        return Optional.empty();
     }
+
 }
